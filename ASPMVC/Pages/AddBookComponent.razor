@@ -1,0 +1,78 @@
+﻿@page "/addbook"
+@attribute [Authorize(Policy = "AdminOnly")]
+@inject NavigationManager NavigationManager
+@inject UseCases.IAddBookUseCase AddBookUseCase
+@inject UseCases.IViewGenresUseCase ViewGenresUseCase
+@using Microsoft.Extensions.Logging; 
+@inject ILogger<AddBookComponent> Logger
+
+<h3>Add Book</h3>
+
+@if (book != null)
+{
+    <EditForm Model="@book" OnValidSubmit="@OnValidSubmit">
+        <DataAnnotationsValidator></DataAnnotationsValidator>
+        <ValidationSummary></ValidationSummary>
+
+        <div class="form-group">
+            <label for="title">Title</label>
+            <InputText id="title" @bind-Value="book.Title" class="form-control"></InputText>
+        </div>
+
+        <div class="form-group">
+            <label for="genre">Genre</label>
+            <select id="genre"
+                    @bind="book.GenreId" class="form-control">
+                <option selected></option>
+                @foreach (var genre in genres)
+                {
+                    <option value="@genre.GenreId">@genre.Name</option>
+                }
+
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="publicationYear">PublicationYear</label>
+            <InputNumber id="publicationYear" @bind-Value="book.PublicationYear" class="form-control"></InputNumber>
+        </div>
+
+        <div class="form-group">
+            <label for="price">Price</label>
+            <InputNumber id="price" @bind-Value="book.Price" class="form-control"></InputNumber>
+        </div>
+
+        <div class="form-group">
+            <label for="quantity">Quantity</label>
+            <InputNumber id="quantity" @bind-Value="book.Quantity" class="form-control"></InputNumber>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Add</button>
+        <button type="button" class="btn btn-primary" @onclick="OnCancel">Cancel</button>
+    </EditForm>
+}
+
+@code {
+    private Book book;
+    private IEnumerable<Genre> genres;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        book = new Book();
+        genres = ViewGenresUseCase.Execute();
+    }
+
+    private void OnValidSubmit()
+    {
+        Logger.LogInformation("OnValidSubmit called");
+
+        AddBookUseCase.Execute(book);
+        NavigationManager.NavigateTo("/books");
+    }
+
+    private void OnCancel()
+    {
+        NavigationManager.NavigateTo("/books");
+    }
+}

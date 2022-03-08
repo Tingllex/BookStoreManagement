@@ -1,0 +1,78 @@
+﻿@inject UseCases.IViewGenresUseCase ViewGenresUseCase
+@inject UseCases.IViewBooksByGenreId ViewBooksByGenreId
+
+
+<div class="form-group">
+    <label for="genre">Genre</label>
+    <select id="genre"
+            @bind="SelectedGenreId" class="form-control">
+        <option selected></option>
+        @foreach (var genre in genres)
+        {
+            <option value="@genre.GenreId">@genre.Name</option>
+        }
+
+    </select>
+</div>
+@if (booksInSelectedGenreId != null)
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Quantity in stock</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in booksInSelectedGenreId)
+            {
+            <tr @onclick="@(() => SelectBook(item))" 
+                style="@(item.BookId == selectedBookId?"background-color: green; cursor:pointer;":"cursor:pointer")">
+                <td>
+                    @item.Title
+                </td>
+                <td>
+                    @item.Quantity
+                </td>
+            </tr>
+            }
+
+        </tbody>
+    </table>
+}
+
+@code {
+    private int selectedBookId;
+    private int selectedGenreId;
+
+    [Parameter]
+    public EventCallback<Book> OnSelectedBook { get; set; }
+
+    private IEnumerable<Genre> genres;
+    private IEnumerable<Book> booksInSelectedGenreId;
+
+    private int SelectedGenreId
+    {
+        get { return selectedGenreId; }
+        set
+        {
+            selectedGenreId = value;
+            booksInSelectedGenreId = ViewBooksByGenreId.Execute(value);
+            SelectBook(null);
+            StateHasChanged();
+        }
+    }
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        genres = ViewGenresUseCase.Execute();
+    }
+
+    private void SelectBook(Book book)
+    {
+
+        OnSelectedBook.InvokeAsync(book);
+        if (book != null) { selectedBookId = book.BookId; }
+    }
+}

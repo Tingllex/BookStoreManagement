@@ -1,0 +1,58 @@
+﻿@page "/seller"
+@attribute [Authorize(Policy = "EmployeeOnly")]
+<h3>Sell books</h3>
+
+<label for="employee">Employee Name:</label>
+<div class="form-group">
+    <input type="text" id="employee" class="form-control" @bind-value="employeeFullName" />
+</div>
+
+
+<br />
+<div class="row">
+    <div class="col">
+        <SelectBookComponent OnSelectedBook="PickBook"></SelectBookComponent>
+        <br />
+        <SellBookComponent EmployeeFullName="@employeeFullName" SelectedBook="selectedBook" OnSelectedBook="SellBook"></SellBookComponent>
+    </div>
+    <div class="col">
+        <br />
+        <ShowTransactionsComponent @ref="showTransactions"></ShowTransactionsComponent>
+    </div>
+</div>
+
+
+
+@code {
+    [CascadingParameter]
+    private Task<AuthenticationState> _authenticationState { get; set; }
+    private AuthenticationState authenticationState;
+    private Book selectedBook;
+
+    private string employeeFullName;
+
+    private ShowTransactionsComponent showTransactions;
+
+    protected override async Task OnInitializedAsync()
+    {
+        authenticationState = await _authenticationState;
+        employeeFullName = authenticationState.User.Identity.Name;
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        base.OnAfterRender(firstRender);
+        if (firstRender)
+            showTransactions.LoadTransactions(employeeFullName);
+    }
+
+    private void PickBook(Book book)
+    {
+        selectedBook = book;
+    }
+
+    private void SellBook(Book book)
+    {
+        showTransactions.LoadTransactions(employeeFullName);
+    }
+}

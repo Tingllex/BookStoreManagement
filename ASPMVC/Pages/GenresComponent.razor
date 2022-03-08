@@ -1,0 +1,71 @@
+﻿@page "/genres"
+@attribute [Authorize(Policy = "AdminOnly")]
+@inject NavigationManager NavigationManager
+@inject UseCases.IViewGenresUseCase ViewGenresUseCase
+@inject UseCases.IDeleteGenreUseCase DeleteGenreUseCase
+<h3>Genres</h3>
+
+
+@if (genres != null)
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Note</th>
+                <th></th>
+            </tr>
+
+        </thead>
+        <tbody>
+            @foreach (var genre in genres)
+            {
+                <tr>
+                    <td>@genre.Name</td>
+                    <td>@genre.Note </td>
+                    <td>
+                        <button type="button" @onclick="@(() => EditGenre(genre))" class="btn btn-warning">Edit</button>
+                        <button type="button" @onclick="@(() => DeleteGenre(genre.GenreId))" class="btn btn-danger">Delete</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+<br />
+<button type="button" @onclick="OnClickAddGenre" class="btn btn-success">New Genre</button>
+
+
+@code {
+    private List<Genre> genres;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+
+        //genres = ViewGenresUseCase.Execute()?.ToList();
+        LoadGenres();
+    }
+
+    private void OnClickAddGenre()
+    {
+        NavigationManager.NavigateTo("/addgenre");
+    }
+
+    private void EditGenre(Genre genre)
+    {
+        NavigationManager.NavigateTo($"/editgenre/{genre.GenreId}");
+    }
+
+    private void DeleteGenre(int genreId)
+    {
+        DeleteGenreUseCase.Delete(genreId);
+        LoadGenres();
+    }
+
+    private void LoadGenres()
+    {
+        genres = ViewGenresUseCase.Execute()?.ToList();
+    }
+}

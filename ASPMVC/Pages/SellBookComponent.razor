@@ -1,0 +1,94 @@
+﻿@inject UseCases.ISellBookUseCase SellBookUseCase
+@inject UseCases.IGetBookByIdUseCase GetBookByIdUseCase
+
+@if (bookToSell != null)
+{
+    @if (!string.IsNullOrWhiteSpace(error))
+    {
+        <br /><div class="alert alert-danger">@error</div>
+    }
+    <EditForm Model="bookToSell" OnValidSubmit="SellBook">
+        <DataAnnotationsValidator></DataAnnotationsValidator>
+        <ValidationSummary></ValidationSummary>
+
+        <div class="form-group">
+            <label for="title">Title</label>
+            <input class="form-control" id="title" type="text" readonly value="@bookToSell.Title" />
+        </div>
+        <div class="form-group">
+            <label for="quantity">Quantity</label>
+            <InputNumber id="quantity" @bind-Value="@bookToSell.Quantity" class="form-control"></InputNumber>
+        </div>
+        <div class="form-group">
+            <label for="price">Price</label>
+            <input class="form-control" id="price" type="text" readonly value="@(bookToSell.Price)" />
+        </div>
+        <button type="submit" class="btn btn-primary">Sell</button>
+    </EditForm>
+}
+
+@code {
+    private Book bookToSell;
+    private string error;
+
+    [Parameter]
+    public string EmployeeFullName { get; set; }
+
+    [Parameter]
+    public Book SelectedBook { get; set; }
+
+
+    [Parameter]
+    public EventCallback<Book> OnSelectedBook { get; set; }
+
+
+
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+        if (SelectedBook != null)
+        {
+            bookToSell = new Book
+            {
+                BookId = SelectedBook.BookId,
+                Title = SelectedBook.Title,
+                PublicationYear = SelectedBook.PublicationYear,
+                GenreId = SelectedBook.GenreId,
+                Price = SelectedBook.Price,
+                Quantity = 0
+            };
+        }
+        else
+        {
+            bookToSell = null;
+        }
+    }
+
+    private void SellBook()
+    {
+
+
+        if (string.IsNullOrWhiteSpace(EmployeeFullName))
+        {
+            error = "Please provide correct employee's fullname";
+            return;
+        }
+        var item = GetBookByIdUseCase.Execute(bookToSell.BookId);
+        if (bookToSell.Quantity <= 0)
+        {
+            error = $"{bookToSell.Quantity} is wrong quantity. Please provide correct quantity.";
+        }
+        else if (item.Quantity >= bookToSell.Quantity)
+        {
+
+            OnSelectedBook.InvokeAsync(bookToSell);
+            error = string.Empty;
+            SellBookUseCase.Execute(bookToSell.BookId, EmployeeFullName, bookToSell.Quantity.Value);
+        }
+        else
+        {
+            error = $"Quantity of {item.Title} is {item.Quantity}. You can not sell more than that.";
+        }
+
+    }
+}

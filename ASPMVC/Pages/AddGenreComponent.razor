@@ -1,0 +1,49 @@
+﻿@page "/addgenre"
+@attribute [Authorize(Policy = "AdminOnly")]
+@inject NavigationManager NavigationManager
+@inject UseCases.IAddGenreUseCase AddGenreUseCase
+
+<h3>Add Genre</h3>
+
+@if (genre != null)
+{
+    <EditForm Model="genre" OnValidSubmit="OnValidSubmit">
+        <DataAnnotationsValidator></DataAnnotationsValidator>
+        <ValidationSummary></ValidationSummary>
+
+        <div class="form-group">
+            <label for="name">Name</label>
+            <InputText id="name" @bind-Value="genre.Name" class="form-control"></InputText>
+        </div>
+
+        <div class="form-group">
+            <label for="note">Note</label>
+            <InputText id="note" @bind-Value="genre.Note" class="form-control"></InputText>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Add</button>
+        <button type="button" class="btn btn-primary" @onclick="OnCancel">Cancel</button>
+    </EditForm>
+}
+
+@code {
+    private Genre genre;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+
+        genre = new Genre();
+    }
+
+    private void OnValidSubmit()
+    {
+        AddGenreUseCase.Execute(genre);
+        NavigationManager.NavigateTo("/genres");
+    }
+
+    private void OnCancel()
+    {
+        NavigationManager.NavigateTo("/genres");
+    }
+}

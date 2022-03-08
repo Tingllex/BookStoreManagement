@@ -1,0 +1,39 @@
+﻿@inject UseCases.IGetTransactionsUseCase GetTransactionsUseCase
+
+@if (transactions != null)
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Employee</th>
+                <th>Title</th>
+                <th>Quantity</th>
+                <th>Price</th>
+                <th>Total cost</th>
+                <th>Books left</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in transactions)
+            {
+            <tr>
+                <td>@item.EmployeeFullName</td>
+                <td>@item.Title</td>
+                <td>@item.Quantity</td>
+                <td>@item.Price</td>
+                <td>@Math.Round((item.Quantity * item.Price), 2)</td>
+                <td>@(item.QuantityBefore-item.Quantity)</td>
+            </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private IEnumerable<Transaction> transactions;
+    public void LoadTransactions(string employeeFullName)
+    {
+        transactions = GetTransactionsUseCase.Execute(employeeFullName);
+        StateHasChanged();
+    }
+}

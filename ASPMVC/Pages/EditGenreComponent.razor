@@ -1,0 +1,67 @@
+﻿@page "/editgenre/{genreId}"
+@attribute [Authorize(Policy = "AdminOnly")]
+@inject NavigationManager NavigationManager
+@inject UseCases.IEditGenreUseCase EditGenreUseCase
+@inject UseCases.IGetGenreByIdUseCase GetGenreByIdUseCase
+
+<h3>Edit Genre</h3>
+
+@if (genre != null)
+{
+    <EditForm Model="genre" OnValidSubmit="OnValidSubmit">
+        <DataAnnotationsValidator></DataAnnotationsValidator>
+        <ValidationSummary></ValidationSummary>
+
+        <div class="form-group">
+            <label for="name">Name</label>
+            <InputText id="name" @bind-Value="genre.Name" class="form-control"></InputText>
+        </div>
+
+        <div class="form-group">
+            <label for="note">Note</label>
+            <InputText id="note" @bind-Value="genre.Note" class="form-control"></InputText>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Edit</button>
+        <button type="button" class="btn btn-primary" @onclick="OnCancel">Cancel</button>
+    </EditForm>
+}
+
+@code {
+    [Parameter]
+    public string GenreId { get; set; }
+
+    private Genre genre;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+    }
+
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+        if (int.TryParse(this.GenreId, out int iGenreId))
+        {
+            var genreToClone = GetGenreByIdUseCase.Execute(iGenreId);
+            this.genre = new Genre
+            {
+                GenreId = genreToClone.GenreId,
+                Name = genreToClone.Name,
+                Note = genreToClone.Note
+            };
+        }
+    }
+
+
+    private void OnValidSubmit()
+    {
+        EditGenreUseCase.Execute(this.genre);
+        NavigationManager.NavigateTo("/genres");
+    }
+
+    private void OnCancel()
+    {
+        NavigationManager.NavigateTo("/genres");
+    }
+}

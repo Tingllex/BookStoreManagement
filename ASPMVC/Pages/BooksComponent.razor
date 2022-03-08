@@ -1,0 +1,73 @@
+﻿@page "/books"
+@attribute [Authorize(Policy = "AdminOnly")]
+@inject UseCases.IViewBooksUseCase ViewBooksUseCase
+@inject UseCases.IGetGenreByIdUseCase GetGenreByIdUseCase
+@inject NavigationManager NavigationManager
+@inject UseCases.IDeleteBookUseCase DeleteBookUseCase
+
+<h3>Books</h3>
+
+@if (books != null)
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Genre</th>
+                <th>Year of publication</th>
+                <th>Price</th>
+                <th>Quantity in stock</th>
+            </tr>
+
+        </thead>
+        <tbody>
+            @foreach (var book in books)
+            {
+                <tr>
+                    <td>@book.Title</td>
+                    <td>@GetGenreByIdUseCase.Execute(book.GenreId.Value)?.Name</td>
+                    <td>@book.PublicationYear </td>
+                    <td>@book.Price </td>
+                    <td>@book.Quantity </td>
+                    <td>
+                        <button type="button" @onclick="@(() => EditBook(book))" class="btn btn-warning">Edit</button>
+                        <button type="button" @onclick="@(() => DeleteBook(book.BookId))" class="btn btn-danger">Delete</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+<br />
+<button type="button" @onclick="OnClickAddBook" class="btn btn-success">New Book</button>
+
+@code {
+    private IEnumerable<Book> books;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        books = ViewBooksUseCase.Execute();
+    }
+
+    private void OnClickAddBook()
+    {
+        NavigationManager.NavigateTo("/addbook");
+    }
+
+    private void EditBook(Book book)
+    {
+        NavigationManager.NavigateTo($"/editbook/{book.BookId}");
+    }
+
+    private void DeleteBook(int bookId)
+    {
+        DeleteBookUseCase.Delete(bookId);
+        LoadBooks();
+    }
+
+    private void LoadBooks()
+    {
+        books = ViewBooksUseCase.Execute()?.ToList();
+    }
+}
